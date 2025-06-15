@@ -11,7 +11,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchMovieDetails } from "../../utils/tmdb";
+import { fetchMovieDetails } from "../../../utils/tmdb";
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 

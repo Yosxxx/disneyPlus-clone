@@ -75,7 +75,7 @@ export default function MovieCard({ index, limit = 10 }: Props) {
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
                 <Pressable
-                    onPress={() => router.push(`/movieDetail/${item.id}`)} // <-- navigate!
+                    onPress={() => router.push(`/${item.id}`)} // <-- navigate!
                     style={{ marginRight: 8 }}
                 >
                     <Image
