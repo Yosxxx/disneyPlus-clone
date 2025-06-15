@@ -16,7 +16,7 @@ export default function Navbar() {
                         height: 80,
                         backgroundColor: "#0f1013",
                         shadowColor: "#000",
-                        shadowOffset: { width: 10, height: -5 },
+                        shadowOffset: { width: 0, height: -20 },
                         shadowOpacity: 1,
                         shadowRadius: 20,
                     },
