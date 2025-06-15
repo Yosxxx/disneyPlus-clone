@@ -116,3 +116,27 @@ export function fetchKoreanMoviePosters(page = 1, limit = 25) {
 export function fetchChineseMoviePosters(page = 1, limit = 25) {
     return discoverPosters({ with_original_language: "zh" }, page, limit);
 }
+
+export async function fetchSimilarMovies(
+    movieId: number | string,
+    limit = 25
+): Promise<PosterItem[]> {
+    const res = await fetch(
+        `${TMDB_API_BASE_URL}/movie/${movieId}/similar?language=en-US&page=1`,
+        {
+            headers: {
+                accept: "application/json",
+                Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
+            },
+        }
+    );
+    if (!res.ok) throw new Error(`TMDB fetch error: ${res.status}`);
+    const { results } = await res.json();
+    return results
+        .filter((m: any) => m.poster_path)
+        .slice(0, limit)
+        .map((m: any) => ({
+            id: m.id,
+            uri: `${IMAGE_BASE_URL}${m.poster_path}`,
+        }));
+}

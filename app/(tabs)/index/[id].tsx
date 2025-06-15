@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
+    FlatList,
     Image,
     Pressable,
     ScrollView,
@@ -11,38 +12,47 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchMovieDetails } from "../../../utils/tmdb";
+import {
+    fetchMovieDetails,
+    fetchSimilarMovies,
+    PosterItem,
+} from "../../../utils/tmdb";
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 export default function MovieDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
+    const router = useRouter();
     const [movie, setMovie] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [saved, setSaved] = useState(false);
+    const [similarMovies, setSimilarMovies] = useState<PosterItem[]>([]);
 
     useEffect(() => {
         if (!id) return;
         let mounted = true;
+
         (async () => {
             try {
                 const details = await fetchMovieDetails(id);
-                if (mounted) setMovie(details);
+                const similar = await fetchSimilarMovies(id);
+                if (mounted) {
+                    setMovie(details);
+                    setSimilarMovies(similar);
+                }
             } catch (e) {
                 console.error(e);
             } finally {
                 if (mounted) setLoading(false);
             }
         })();
+
         return () => {
             mounted = false;
         };
     }, [id]);
 
-    const handleSave = () => {
-        setSaved(!saved);
-        // TODO: persist saved state (e.g. AsyncStorage, backend)
-    };
+    const handleSave = () => setSaved(!saved);
 
     const handleShare = () => {
         Share.share({
@@ -53,7 +63,6 @@ export default function MovieDetail() {
     };
 
     const handleDownload = () => {
-        // TODO: download poster or details
         console.log("Download pressed for", movie.title);
     };
 
@@ -77,6 +86,18 @@ export default function MovieDetail() {
     const hours = Math.floor(movie.runtime / 60);
     const minutes = movie.runtime % 60;
     const language = (movie.original_language || "").toUpperCase();
+
+    const renderSimilarMovie = ({ item }: { item: PosterItem }) => (
+        <Pressable
+            className="mr-4 w-32"
+            onPress={() => router.push(`/movies/${item.id}`)}
+        >
+            <Image
+                source={{ uri: item.uri }}
+                className="w-full h-48 rounded-lg"
+            />
+        </Pressable>
+    );
 
     return (
         <View className="flex-1 bg-dark-300">
@@ -102,7 +123,7 @@ export default function MovieDetail() {
                         <Pressable
                             className="bg-white py-2 px-4 rounded mb-4 w-full"
                             onPress={() => {
-                                /* handle “watch now” */
+                                /* handle "watch now" */
                             }}
                         >
                             <View className="flex-row gap-x-2 items-center justify-center">
@@ -122,8 +143,7 @@ export default function MovieDetail() {
                         {movie.overview}
                     </Text>
 
-                    {/* Save / Share / Download */}
-                    <View className="flex-row gap-x-12">
+                    <View className="flex-row gap-x-12 justify-center">
                         <Pressable
                             onPress={handleSave}
                             className="items-center"
@@ -165,6 +185,19 @@ export default function MovieDetail() {
                                 Download
                             </Text>
                         </Pressable>
+                    </View>
+
+                    <View className="mt-5">
+                        <Text className="text-white text-2xl font-semibold mb-3">
+                            More Like This
+                        </Text>
+                        <FlatList
+                            data={similarMovies}
+                            horizontal
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={renderSimilarMovie}
+                            showsHorizontalScrollIndicator={false}
+                        />
                     </View>
                 </ScrollView>
             </SafeAreaView>
