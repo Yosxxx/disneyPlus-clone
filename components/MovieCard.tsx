@@ -1,6 +1,13 @@
 // components/MovieCard.tsx
+import { router } from "expo-router"; // <-- import router
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, View } from "react-native";
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Pressable,
+    View,
+} from "react-native";
 import {
     fetchActionMoviePosters,
     fetchChineseMoviePosters,
@@ -10,6 +17,7 @@ import {
     fetchPopularMoviePosters,
     fetchRomanceMoviePosters,
     fetchThrillerMoviePosters,
+    PosterItem, // <-- import the type
 } from "../utils/tmdb";
 
 const FETCHERS = [
@@ -24,17 +32,14 @@ const FETCHERS = [
 ] as const;
 
 type Props = {
-    /** 0 = “Popular”, 1 = Action, 2 = Comedy, … 7 = Thriller */
     index: number;
-    /** how many posters to load */
     limit?: number;
 };
 
 export default function MovieCard({ index, limit = 10 }: Props) {
-    const [urls, setUrls] = useState<string[]>([]);
+    const [items, setItems] = useState<PosterItem[]>([]); // <-- now PosterItem[]
     const [loading, setLoading] = useState(true);
 
-    // pick the right fetcher (fallback to “popular” if out of bounds)
     const fetchFn = FETCHERS[index] ?? FETCHERS[0];
 
     useEffect(() => {
@@ -42,7 +47,7 @@ export default function MovieCard({ index, limit = 10 }: Props) {
         (async () => {
             try {
                 const list = await fetchFn(1, limit);
-                if (mounted) setUrls(list);
+                if (mounted) setItems(list);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -64,21 +69,21 @@ export default function MovieCard({ index, limit = 10 }: Props) {
 
     return (
         <FlatList
-            data={urls}
-            keyExtractor={(uri) => uri}
+            data={items}
+            keyExtractor={(item) => item.id.toString()} // <-- toString(), not localToString
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item: uri }) => (
-                <Image
-                    source={{ uri }}
-                    style={{
-                        width: 120,
-                        height: 180,
-                        marginRight: 8,
-                        borderRadius: 6,
-                    }}
-                    resizeMode="cover"
-                />
+            renderItem={({ item }) => (
+                <Pressable
+                    onPress={() => router.push(`/movieDetail/${item.id}`)} // <-- navigate!
+                    style={{ marginRight: 8 }}
+                >
+                    <Image
+                        source={{ uri: item.uri }}
+                        style={{ width: 120, height: 180, borderRadius: 6 }}
+                        resizeMode="cover"
+                    />
+                </Pressable>
             )}
         />
     );

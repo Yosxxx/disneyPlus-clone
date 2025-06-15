@@ -5,17 +5,62 @@ type ExtraConfig = {
     TMDB_API_BASE_URL: string;
 };
 
+export interface Genre {
+    id: number;
+    name: string;
+}
+
+export interface PosterItem {
+    id: number;
+    uri: string;
+}
+
+export interface MovieDetails {
+    id: number;
+    title: string;
+    overview: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    release_date: string;
+    runtime: number;
+    vote_average: number;
+    genres: Genre[];
+    // add any other fields you need...
+}
+
 const extra = Constants.expoConfig?.extra as ExtraConfig;
 const { TMDB_BEARER_TOKEN, TMDB_API_BASE_URL } = extra;
 
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+
+// Details
+export async function fetchMovieDetails(
+    movieId: number | string
+): Promise<MovieDetails> {
+    const res = await fetch(
+        `${TMDB_API_BASE_URL}/movie/${movieId}?language=en-US`,
+        {
+            headers: {
+                accept: "application/json",
+                Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
+            },
+        }
+    );
+
+    if (!res.ok) {
+        throw new Error(`TMDB details fetch error: ${res.status}`);
+    }
+
+    const json = await res.json();
+    return json as MovieDetails;
+}
 
 /** Core discover function under the hood */
 async function discoverPosters(
     params: Record<string, string>,
     page = 1,
     limit = 25
-): Promise<string[]> {
+): Promise<PosterItem[]> {
     const qs = new URLSearchParams({
         ...params,
         language: "en-US",
@@ -29,14 +74,17 @@ async function discoverPosters(
         },
     });
     if (!res.ok) throw new Error(`TMDB fetch error: ${res.status}`);
-    const json = await res.json();
-    const movies = json.results as Array<{ poster_path: string | null }>;
-    return movies
+    const { results } = (await res.json()) as {
+        results: Array<{ id: number; poster_path: string | null }>;
+    };
+
+    return results
+        .filter((m) => m.poster_path)
         .slice(0, limit)
-        .map((m) =>
-            m.poster_path ? `${IMAGE_BASE_URL}${m.poster_path}` : null
-        )
-        .filter((u): u is string => !!u);
+        .map((m) => ({
+            id: m.id,
+            uri: `${IMAGE_BASE_URL}${m.poster_path!}`,
+        }));
 }
 
 /** Popular overall */
