@@ -5,7 +5,7 @@ const Search = () => {
     return (
         <View className="flex-1 bg-dark-300">
             <SafeAreaView>
-                <Text>Profile</Text>
+                <Text>Search</Text>
             </SafeAreaView>
         </View>
     );

@@ -5,7 +5,7 @@ const WatchLater = () => {
     return (
         <View className="flex-1 bg-dark-300">
             <SafeAreaView>
-                <Text>Profile</Text>
+                <Text>Watch Later</Text>
             </SafeAreaView>
         </View>
     );
