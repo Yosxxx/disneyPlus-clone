@@ -1,5 +1,3 @@
-// app/movieDetail/[id].tsx
-
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
