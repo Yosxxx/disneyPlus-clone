@@ -1,5 +1,7 @@
 # I HATE REACT NATIVE
 
+bro react native too complicated as hell, tbh the mockup is the only thing done, other tabs are actually empty.
+
 ## Get started
 
 1. Install dependencies
